@@ -1,128 +1,51 @@
-import React, { useMemo } from "react";
-import { View, Text, Button } from "react-native";
+import React from 'react';
+import {View, Text, Image, Linking, TouchableOpacity} from 'react-native';
+import { NavigationContainer } from '@react-navigation/native'; // Import NavigationContainer
+import { createStackNavigator } from '@react-navigation/stack';
+// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import ProfileScreen from "./src/screens/ProfileScreen";
+import HomeScreen from "./src/screens/HomeScreen";
+import AboutUsScreen from "./src/screens/AboutUsScreen";
 
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import * as Linking from "expo-linking";
+const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
 
-import {
-  NavigationContainer,
-  LinkingOptions,
-  useLinkTo,
-  NavigatorScreenParams,
-} from "@react-navigation/native";
-import {
-  createStackNavigator,
-  StackScreenProps,
-} from "@react-navigation/stack";
-
-type RootStackParamList = {
-  HomeStack: NavigatorScreenParams<HomeStackParamList>;
-  Settings: undefined;
-};
-
-type HomeStackParamList = {
-  Home: undefined;
-  Profile: {
-    id: string;
-    age?: number;
-  };
-};
-
-const prefix = Linking.createURL("/");
-
-const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: [prefix],
-  config: {
-    screens: {
-      HomeStack: {
-        path: "stack",
-        initialRouteName: "Home",
-        screens: {
-          Home: "home",
-          Profile: {
-            path: "user/:id/:age",
-            parse: {
-              id: (id) => `there, ${id}`,
-              age: Number,
-            },
-            stringify: {
-              id: (id) => id.replace("there, ", ""),
-            },
-          },
-        },
-      },
-      Settings: "settings",
-    },
-  },
-};
-
-type HomeProps = StackScreenProps<HomeStackParamList, "Home">;
-const Home: React.FC<HomeProps> = ({ navigation }) => {
-  const linkTo = useLinkTo();
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Button
-        title="Go to Wojciech's profile"
-        onPress={() => linkTo("/stack/user/Wojciech/22")}
-      />
-      <Button
-        title="Go to unknown profile"
-        onPress={() => navigation.navigate("Profile")}
-      />
+const KafedraScreen = ({ navigation }) => (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <TouchableOpacity onPress={() => Linking.openURL('https://www.example.com')}>
+            <Text>Кафедра в Інтернеті</Text>
+        </TouchableOpacity>
     </View>
-  );
-};
+);
 
-type ProfileProps = StackScreenProps<HomeStackParamList, "Profile">;
-const Profile: React.FC<ProfileProps> = ({ route }) => {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Hello {route.params?.id || "Unknown"}!</Text>
-      <Text>
-        Type of age parameter is{" "}
-        {route.params?.age ? typeof route.params.age : "undefined"}
-      </Text>
-    </View>
-  );
-};
-
-type SettingsProps = StackScreenProps<RootStackParamList, "Settings">;
-const Settings: React.FC<SettingsProps> = () => {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>This is the Settings Page.</Text>
-    </View>
-  );
-};
-
-type HomeStackProps = StackScreenProps<RootStackParamList, "HomeStack">;
-const MyStack = createStackNavigator<HomeStackParamList>();
-
-const HomeStack: React.FC<HomeStackProps> = () => {
-  return (
-    <MyStack.Navigator>
-      <MyStack.Screen name="Home" component={Home} />
-      <MyStack.Screen name="Profile" component={Profile} />
-    </MyStack.Navigator>
-  );
-};
-
-const MyTabs = createBottomTabNavigator<RootStackParamList>();
-
-export default function App() {
-  const screenOptions = useMemo(
-    () => ({
-      headerShown: false,
-      tabBarIcon: () => null,
-    }),
-    []
-  );
-  return (
-    <NavigationContainer linking={linking}>
-      <MyTabs.Navigator screenOptions={screenOptions}>
-        <MyTabs.Screen name="HomeStack" component={HomeStack} />
-        <MyTabs.Screen name="Settings" component={Settings} />
-      </MyTabs.Navigator>
-    </NavigationContainer>
-  );
+function HomeStack() {
+    return (
+        <Stack.Navigator>
+            <Stack.Screen name="Home" component={HomeScreen} />
+        </Stack.Navigator>
+    );
 }
+
+function App() {
+    return (
+        <NavigationContainer>
+            <Drawer.Navigator
+                initialRouteName="HomeDrawer"
+                screenOptions={{
+                    activeTintColor: '#e91e63',
+                }}
+            >
+                <Drawer.Screen name="Домашня сторінка" component={HomeStack} />
+                <Drawer.Screen name="Про себе" component={AboutUsScreen} />
+                <Drawer.Screen name="Профіль" component={ProfileScreen} />
+
+                <Drawer.Screen name="URL на кафедру">
+                    {KafedraScreen}
+                </Drawer.Screen>
+            </Drawer.Navigator>
+        </NavigationContainer>
+    );
+}
+
+export default App;
